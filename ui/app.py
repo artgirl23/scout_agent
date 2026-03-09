@@ -28,6 +28,11 @@ CSS = """
     color: #6c7086;
     margin-bottom: 4px;
 }
+.job-company {
+    font-size: 0.85rem;
+    color: #a6adc8;
+    margin-top: 6px;
+}
 </style>
 """
 
@@ -64,6 +69,7 @@ def run():
                 <div class="job-card">
                     <div class="job-number">#{i + 1}</div>
                     <a href="{job['link']}" target="_blank">{job['title']}</a>
+                    <div class="job-company">{job['company']}</div>
                 </div>
                 """
                 if i % 2 == 0:
