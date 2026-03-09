@@ -18,7 +18,9 @@ def scout_jobs(keywords="Marketing Design"):
             link = card.find('a', class_='base-card__full-link')['href']
             company_tag = card.find('h4', class_='base-search-card__subtitle')
             company = company_tag.text.strip() if company_tag else "Unknown"
-            results.append({"title": title, "link": link, "company": company})
+            location_tag = card.find('span', class_='job-search-card__location')
+            location = location_tag.text.strip() if location_tag else "Location not listed"
+            results.append({"title": title, "link": link, "company": company, "location": location})
         except:
             continue
     return results

@@ -33,6 +33,11 @@ CSS = """
     color: #a6adc8;
     margin-top: 6px;
 }
+.job-location {
+    font-size: 0.8rem;
+    color: #6c7086;
+    margin-top: 3px;
+}
 </style>
 """
 
@@ -70,6 +75,7 @@ def run():
                     <div class="job-number">#{i + 1}</div>
                     <a href="{job['link']}" target="_blank">{job['title']}</a>
                     <div class="job-company">{job['company']}</div>
+                    <div class="job-location">📍 {job['location']}</div>
                 </div>
                 """
                 if i % 2 == 0:
