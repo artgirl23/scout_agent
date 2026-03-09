@@ -20,7 +20,11 @@ def scout_jobs(keywords="Marketing Design"):
             company = company_tag.text.strip() if company_tag else "Unknown"
             location_tag = card.find('span', class_='job-search-card__location')
             location = location_tag.text.strip() if location_tag else "Location not listed"
-            results.append({"title": title, "link": link, "company": company, "location": location})
+            date_tag = card.find('time', class_='job-search-card__listdate')
+            if not date_tag:
+                date_tag = card.find('time', class_='job-search-card__listdate--new')
+            posted = date_tag['datetime'] if date_tag and date_tag.get('datetime') else "Date not listed"
+            results.append({"title": title, "link": link, "company": company, "location": location, "posted": posted})
         except:
             continue
     return results
