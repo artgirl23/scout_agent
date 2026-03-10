@@ -7,52 +7,90 @@ CSS = """
     background-color: #1e1e2e;
     border: 1px solid #313244;
     border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 8px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
     transition: border-color 0.2s;
 }
 .job-card:hover {
     border-color: #89b4fa;
 }
-.job-card a {
-    font-size: 1rem;
-    font-weight: 600;
+.job-title a {
+    font-size: 0.95rem;
+    font-weight: 700;
     color: #89b4fa;
     text-decoration: none;
+    line-height: 1.4;
 }
-.job-card a:hover {
+.job-title a:hover {
     text-decoration: underline;
 }
-.job-number {
-    font-size: 0.75rem;
-    color: #6c7086;
-    margin-bottom: 4px;
-}
-.job-company {
-    font-size: 0.85rem;
-    color: #a6adc8;
-    margin-top: 6px;
-}
-.job-location {
+.job-meta {
     font-size: 0.8rem;
-    color: #6c7086;
-    margin-top: 3px;
+    color: #7f849c;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.job-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+.badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #a6e3a1;
+    background-color: #1e3a2e;
+    border-radius: 4px;
+    padding: 2px 8px;
 }
 .job-posted {
-    font-size: 0.75rem;
-    color: #585b70;
-    margin-top: 3px;
+    font-size: 0.7rem;
+    color: #45475a;
+    margin-top: 8px;
 }
 </style>
 """
 
 
+def _badges_html(job_type: str) -> str:
+    """Return badge HTML only for fields that have real values."""
+    badges = []
+    for value in job_type.split(" · "):
+        value = value.strip()
+        if value and value.lower() != "not specified":
+            badges.append(f'<span class="badge">{value}</span>')
+    if not badges:
+        return ""
+    return f'<div class="job-badges">{"".join(badges)}</div>'
+
+
+def _card_html(job: dict) -> str:
+    meta_parts = [job["company"]]
+    if job["location"].lower() != "location not listed":
+        meta_parts.append(job["location"])
+    meta = " · ".join(meta_parts)
+
+    posted = ""
+    if job["posted"].lower() != "date not listed":
+        posted = f'<div class="job-posted">🕐 {job["posted"]}</div>'
+
+    return f"""
+    <div class="job-card">
+        <div class="job-title"><a href="{job['link']}" target="_blank">{job['title']}</a></div>
+        <div class="job-meta">{meta}</div>
+        {_badges_html(job['job_type'])}
+        {posted}
+    </div>
+    """
+
+
 def run():
     st.set_page_config(page_title="Marketing Job Scout", layout="wide")
-
     st.markdown(CSS, unsafe_allow_html=True)
 
-    # --- Sidebar ---
     with st.sidebar:
         st.header("Search Settings")
         keywords = st.text_input("Keywords", value="Marketing Design")
@@ -72,19 +110,9 @@ def run():
             jobs = job_list[:num_results]
             st.success(f"Found {len(jobs)} results for **{keywords}**")
 
-            # 2-column grid
             col1, col2 = st.columns(2)
             for i, job in enumerate(jobs):
-                card_html = f"""
-                <div class="job-card">
-                    <div class="job-number">#{i + 1}</div>
-                    <a href="{job['link']}" target="_blank">{job['title']}</a>
-                    <div class="job-company">{job['company']}</div>
-                    <div class="job-location">📍 {job['location']}</div>
-                    <div class="job-posted">🗓 {job['posted']}</div>
-                </div>
-                """
                 if i % 2 == 0:
-                    col1.markdown(card_html, unsafe_allow_html=True)
+                    col1.markdown(_card_html(job), unsafe_allow_html=True)
                 else:
-                    col2.markdown(card_html, unsafe_allow_html=True)
+                    col2.markdown(_card_html(job), unsafe_allow_html=True)
