@@ -5,20 +5,12 @@ from tools.scraper import scout_jobs
 
 CSS = """
 <style>
-.job-title-link a {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #89b4fa !important;
-    text-decoration: none;
-}
-.job-title-link a:hover {
-    text-decoration: underline;
-}
 .badge-row {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    margin-top: 2px;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 .badge {
     font-size: 0.72rem;
@@ -44,36 +36,30 @@ def _to_csv(jobs: list[dict]) -> str:
 
 def _render_card(job: dict) -> None:
     with st.container(border=True):
-        # Title — linked
-        st.markdown(
-            f'<div class="job-title-link"><a href="{job["link"]}" target="_blank">{job["title"]}</a></div>',
-            unsafe_allow_html=True,
-        )
+        # 1. Title — bold, plain text (no faded link)
+        st.markdown(f"**{job['title']}**")
 
-        # Company · Location on one muted line
+        # 2. Company · Location — muted caption
         meta_parts = [job["company"]]
         if job["location"].lower() != "location not listed":
             meta_parts.append(job["location"])
         st.caption(" · ".join(meta_parts))
 
-        # Job type badges — only if real values exist
+        # 3. Job type badges — only if real values exist
         badges = [
             v.strip() for v in job["job_type"].split(" · ")
             if v.strip() and v.strip().lower() != "not specified"
         ]
         if badges:
             badge_html = "".join(f'<span class="badge">{b}</span>' for b in badges)
-            st.markdown(
-                f'<div class="badge-row">{badge_html}</div>',
-                unsafe_allow_html=True,
-            )
+            st.markdown(f'<div class="badge-row">{badge_html}</div>', unsafe_allow_html=True)
 
-        # Posted date — most subtle, only if present
+        # 4. Posted date — most subtle element
         if job["posted"].lower() != "date not listed":
-            st.markdown(
-                f"<small style='color:#45475a;'>🕐 {job['posted']}</small>",
-                unsafe_allow_html=True,
-            )
+            st.caption(f"🕐 {job['posted']}")
+
+        # 5. CTA — native link button, high-contrast, full width
+        st.link_button("View Job →", url=job["link"], use_container_width=True)
 
 
 def run():
