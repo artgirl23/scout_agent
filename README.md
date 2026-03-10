@@ -1,3 +1,4 @@
+![Scout Agent](scout home.png)
 Scout Agent: AI-Powered Job Aggregator
 Scout Agent is an intelligent, automated job hunting assistant built to streamline the manual process of searching and vetting job listings. By combining custom web scraping with AI-driven summarization, it allows users to surface relevant opportunities in seconds, not hours.
 
