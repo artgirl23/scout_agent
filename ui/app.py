@@ -5,40 +5,20 @@ from tools.scraper import scout_jobs
 
 CSS = """
 <style>
-.job-card {
-    background-color: #1e1e2e;
-    border: 1px solid #313244;
-    border-radius: 10px;
-    padding: 16px 18px;
-    margin-bottom: 10px;
-    transition: border-color 0.2s;
-}
-.job-card:hover {
-    border-color: #89b4fa;
-}
-.job-title a {
-    font-size: 0.95rem;
+.job-title-link a {
+    font-size: 1rem;
     font-weight: 700;
-    color: #89b4fa;
+    color: #89b4fa !important;
     text-decoration: none;
-    line-height: 1.4;
 }
-.job-title a:hover {
+.job-title-link a:hover {
     text-decoration: underline;
 }
-.job-meta {
-    font-size: 0.8rem;
-    color: #7f849c;
-    margin-top: 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.job-badges {
+.badge-row {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    margin-top: 10px;
+    margin-top: 2px;
 }
 .badge {
     font-size: 0.72rem;
@@ -47,11 +27,6 @@ CSS = """
     background-color: #1e3a2e;
     border-radius: 4px;
     padding: 2px 8px;
-}
-.job-posted {
-    font-size: 0.7rem;
-    color: #45475a;
-    margin-top: 8px;
 }
 </style>
 """
@@ -67,35 +42,38 @@ def _to_csv(jobs: list[dict]) -> str:
     return buf.getvalue()
 
 
-def _badges_html(job_type: str) -> str:
-    badges = []
-    for value in job_type.split(" · "):
-        value = value.strip()
-        if value and value.lower() != "not specified":
-            badges.append(f'<span class="badge">{value}</span>')
-    if not badges:
-        return ""
-    return f'<div class="job-badges">{"".join(badges)}</div>'
+def _render_card(job: dict) -> None:
+    with st.container(border=True):
+        # Title — linked
+        st.markdown(
+            f'<div class="job-title-link"><a href="{job["link"]}" target="_blank">{job["title"]}</a></div>',
+            unsafe_allow_html=True,
+        )
 
+        # Company · Location on one muted line
+        meta_parts = [job["company"]]
+        if job["location"].lower() != "location not listed":
+            meta_parts.append(job["location"])
+        st.caption(" · ".join(meta_parts))
 
-def _card_html(job: dict) -> str:
-    meta_parts = [job["company"]]
-    if job["location"].lower() != "location not listed":
-        meta_parts.append(job["location"])
-    meta = " · ".join(meta_parts)
+        # Job type badges — only if real values exist
+        badges = [
+            v.strip() for v in job["job_type"].split(" · ")
+            if v.strip() and v.strip().lower() != "not specified"
+        ]
+        if badges:
+            badge_html = "".join(f'<span class="badge">{b}</span>' for b in badges)
+            st.markdown(
+                f'<div class="badge-row">{badge_html}</div>',
+                unsafe_allow_html=True,
+            )
 
-    posted = ""
-    if job["posted"].lower() != "date not listed":
-        posted = f'<div class="job-posted">🕐 {job["posted"]}</div>'
-
-    return f"""
-    <div class="job-card">
-        <div class="job-title"><a href="{job['link']}" target="_blank">{job['title']}</a></div>
-        <div class="job-meta">{meta}</div>
-        {_badges_html(job['job_type'])}
-        {posted}
-    </div>
-    """
+        # Posted date — most subtle, only if present
+        if job["posted"].lower() != "date not listed":
+            st.markdown(
+                f"<small style='color:#45475a;'>🕐 {job['posted']}</small>",
+                unsafe_allow_html=True,
+            )
 
 
 def run():
@@ -108,7 +86,6 @@ def run():
     with st.sidebar:
         st.header("Search Settings")
 
-        # --- Download button at the top ---
         if st.session_state.job_results:
             st.download_button(
                 label="⬇️ Download Results as CSV",
@@ -140,7 +117,5 @@ def run():
         st.success(f"Found {len(jobs)} results for **{keywords if search else ''}**")
         col1, col2 = st.columns(2)
         for i, job in enumerate(jobs):
-            if i % 2 == 0:
-                col1.markdown(_card_html(job), unsafe_allow_html=True)
-            else:
-                col2.markdown(_card_html(job), unsafe_allow_html=True)
+            with col1 if i % 2 == 0 else col2:
+                _render_card(job)
