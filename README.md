@@ -1,4 +1,4 @@
-![Scout Agent](scout home.png)
+![Scout Agent](scouthome.png)
 
 
 Scout Agent: AI-Powered Job Aggregator
