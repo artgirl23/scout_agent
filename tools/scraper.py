@@ -1,5 +1,6 @@
 import html
 import requests
+import streamlit as st
 from bs4 import BeautifulSoup
 
 
@@ -8,6 +9,7 @@ def _text(tag) -> str:
     return html.escape(tag.get_text(separator=" ", strip=True)) if tag else ""
 
 
+@st.cache_data(ttl=3600)
 def scout_jobs(keywords="Marketing Design"):
     url = f"https://www.linkedin.com/jobs/search/?keywords={requests.utils.quote(keywords)}"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
